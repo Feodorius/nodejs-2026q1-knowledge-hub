@@ -8,10 +8,17 @@ import { UserEntity } from './entities/user.entity';
 import { UserRole } from './enums/user-role.enum';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { ArticleService } from '../article/article.service';
+import { CommentService } from '../comment/comment.service';
 
 @Injectable()
 export class UserService {
   private users: UserEntity[] = [];
+
+  constructor(
+    private readonly articleService: ArticleService,
+    private readonly commentService: CommentService,
+  ) {}
 
   findAll(): UserEntity[] {
     return this.users;
@@ -50,6 +57,8 @@ export class UserService {
   remove(id: string): void {
     const index = this.users.findIndex((u) => u.id === id);
     if (index === -1) throw new NotFoundException(`User ${id} not found`);
+    this.articleService.nullifyAuthor(id);
+    this.commentService.removeByAuthor(id);
     this.users.splice(index, 1);
   }
 }

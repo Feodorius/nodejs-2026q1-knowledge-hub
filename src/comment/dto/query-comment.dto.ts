@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum SortOrder {
@@ -26,7 +33,10 @@ export class QueryCommentDto {
   @Type(() => Number)
   limit?: number;
 
-  @ApiPropertyOptional({ description: 'Field to sort by', example: 'createdAt' })
+  @ApiPropertyOptional({
+    description: 'Field to sort by',
+    example: 'createdAt',
+  })
   @IsString()
   @IsOptional()
   sortBy?: string;
