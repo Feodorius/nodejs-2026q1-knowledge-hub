@@ -8,8 +8,10 @@ import { UserEntity } from './entities/user.entity';
 import { UserRole } from './enums/user-role.enum';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { QueryUserDto } from './dto/query-user.dto';
 import { ArticleService } from '../article/article.service';
 import { CommentService } from '../comment/comment.service';
+import { SortOrder } from '../comment/dto/query-comment.dto';
 
 @Injectable()
 export class UserService {
@@ -20,8 +22,26 @@ export class UserService {
     private readonly commentService: CommentService,
   ) {}
 
-  findAll(): UserEntity[] {
-    return this.users;
+  findAll(query: QueryUserDto): UserEntity[] | object {
+    const result = [...this.users];
+
+    if (query.sortBy) {
+      result.sort((a, b) => {
+        const aVal = a[query.sortBy];
+        const bVal = b[query.sortBy];
+        const dir = query.order === SortOrder.DESC ? -1 : 1;
+        return aVal > bVal ? dir : aVal < bVal ? -dir : 0;
+      });
+    }
+
+    if (query.page !== undefined && query.limit !== undefined) {
+      const total = result.length;
+      const start = (query.page - 1) * query.limit;
+      const data = result.slice(start, start + query.limit);
+      return { total, page: query.page, limit: query.limit, data };
+    }
+
+    return result;
   }
 
   findOne(id: string): UserEntity {

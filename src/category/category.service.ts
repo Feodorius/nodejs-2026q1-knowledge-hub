@@ -3,7 +3,9 @@ import { randomUUID } from 'crypto';
 import { CategoryEntity } from './entities/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { QueryCategoryDto } from './dto/query-category.dto';
 import { ArticleService } from '../article/article.service';
+import { SortOrder } from '../comment/dto/query-comment.dto';
 
 @Injectable()
 export class CategoryService {
@@ -11,8 +13,26 @@ export class CategoryService {
 
   constructor(private readonly articleService: ArticleService) {}
 
-  findAll(): CategoryEntity[] {
-    return this.categories;
+  findAll(query: QueryCategoryDto): CategoryEntity[] | object {
+    const result = [...this.categories];
+
+    if (query.sortBy) {
+      result.sort((a, b) => {
+        const aVal = a[query.sortBy];
+        const bVal = b[query.sortBy];
+        const dir = query.order === SortOrder.DESC ? -1 : 1;
+        return aVal > bVal ? dir : aVal < bVal ? -dir : 0;
+      });
+    }
+
+    if (query.page !== undefined && query.limit !== undefined) {
+      const total = result.length;
+      const start = (query.page - 1) * query.limit;
+      const data = result.slice(start, start + query.limit);
+      return { total, page: query.page, limit: query.limit, data };
+    }
+
+    return result;
   }
 
   findOne(id: string): CategoryEntity {

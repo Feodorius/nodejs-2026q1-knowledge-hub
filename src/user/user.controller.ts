@@ -8,11 +8,13 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { QueryUserDto } from './dto/query-user.dto';
 import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
 
 @ApiTags('Users')
@@ -22,8 +24,8 @@ export class UserController {
 
   @ApiOperation({ summary: 'Get all users' })
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  findAll(@Query() query: QueryUserDto) {
+    return this.userService.findAll(query);
   }
 
   @ApiOperation({ summary: 'Get user by id' })
