@@ -95,7 +95,7 @@ async function main() {
     },
   });
 
-  const article3 = await prisma.article.create({
+  await prisma.article.create({
     data: {
       title: 'TypeScript Advanced Types',
       content:
@@ -109,7 +109,7 @@ async function main() {
     },
   });
 
-  const article4 = await prisma.article.create({
+  await prisma.article.create({
     data: {
       title: 'Startup Funding Guide',
       content:
@@ -123,7 +123,7 @@ async function main() {
     },
   });
 
-  const article5 = await prisma.article.create({
+  await prisma.article.create({
     data: {
       title: 'Quantum Computing Fundamentals',
       content:
