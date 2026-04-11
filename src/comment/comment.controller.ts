@@ -22,27 +22,27 @@ export class CommentController {
 
   @ApiOperation({ summary: 'Get comments by articleId' })
   @Get()
-  findByArticle(@Query() query: QueryCommentDto) {
+  async findByArticle(@Query() query: QueryCommentDto) {
     return this.commentService.findByArticle(query);
   }
 
   @ApiOperation({ summary: 'Get comment by id' })
   @Get(':id')
-  findOne(@Param('id', ParseUuidPipe) id: string) {
+  async findOne(@Param('id', ParseUuidPipe) id: string) {
     return this.commentService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Create comment' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() dto: CreateCommentDto) {
+  async create(@Body() dto: CreateCommentDto) {
     return this.commentService.create(dto);
   }
 
   @ApiOperation({ summary: 'Delete comment' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseUuidPipe) id: string) {
+  async remove(@Param('id', ParseUuidPipe) id: string) {
     return this.commentService.remove(id);
   }
 }
