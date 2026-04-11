@@ -8,10 +8,10 @@ services:
     container_name: knowledge-hub-app
     env_file: .env
     ports:
-      - '${PORT:-4000}:4000'
+      - '${PORT:-4000}:${PORT:-4000}'
     environment:
       - NODE_ENV=production
-      - PORT=4000
+      - PORT=${PORT:-4000}
       - CRYPT_SALT=${CRYPT_SALT}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - JWT_SECRET_REFRESH_KEY=${JWT_SECRET_REFRESH_KEY}
