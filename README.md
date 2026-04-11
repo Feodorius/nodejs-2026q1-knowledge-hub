@@ -8,7 +8,7 @@
 ## Downloading
 
 ```
-git clone {repository URL}
+git clone https://github.com/Feodorius/nodejs-2026q1-knowledge-hub
 ```
 
 ## Installing NPM modules
