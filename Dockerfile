@@ -37,6 +37,12 @@ RUN npm ci --omit=dev
 # Copy compiled application from builder stage
 COPY --from=builder /app/dist ./dist
 
+# Copy generated Prisma Client from builder stage
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Copy prisma schema (needed for Prisma runtime)
+COPY prisma ./prisma
+
 # Change ownership to nodejs user
 RUN chown -R nodejs:nodejs /app
 
