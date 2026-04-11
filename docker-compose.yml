@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: knowledge-hub-app
+    env_file: .env
     ports:
       - '${APP_PORT:-4000}:4000'
     environment:
@@ -39,6 +40,7 @@ services:
   db:
     image: postgres:16-alpine
     container_name: knowledge-hub-db
+    env_file: .env
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
