@@ -4,6 +4,7 @@
 
 - Git - [Download & Install Git](https://git-scm.com/downloads).
 - Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
+- Docker - [Download & Install Docker](https://docs.docker.com/engine/install/) (optional, for containerized deployment).
 
 ## Downloading
 
@@ -19,9 +20,23 @@ npm install
 
 ## Running application
 
+### Local development
+
 ```
 npm start
 ```
+
+### Docker
+
+```
+docker-compose up --build
+```
+
+## Docker Hub
+
+Application image is available on Docker Hub:
+- **Repository:** [wedster/knowledge-hub](https://hub.docker.com/r/wedster/knowledge-hub)
+- **Pull command:** `docker pull wedster/knowledge-hub:latest`
 
 After starting the app on port (4000 as default) you can open
 in your browser OpenAPI documentation by typing http://localhost:4000/doc/.

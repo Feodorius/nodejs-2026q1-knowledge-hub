@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: knowledge-hub-app
+    env_file: .env
+    ports:
+      - '${PORT:-4000}:${PORT:-4000}'
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT:-4000}
+      - CRYPT_SALT=${CRYPT_SALT}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_SECRET_REFRESH_KEY=${JWT_SECRET_REFRESH_KEY}
+      - TOKEN_EXPIRE_TIME=${TOKEN_EXPIRE_TIME}
+      - TOKEN_REFRESH_EXPIRE_TIME=${TOKEN_REFRESH_EXPIRE_TIME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - knowledge-hub-network
+    volumes:
+      - /app/node_modules
+
+  db:
+    image: postgres:16-alpine
+    container_name: knowledge-hub-db
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - '5432:5432'
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    volumes:
+      - knowledge-hub-db-volume:/var/lib/postgresql/data
+    networks:
+      - knowledge-hub-network
+
+  adminer:
+    image: adminer:latest
+    container_name: knowledge-hub-adminer
+    ports:
+      - '8080:8080'
+    depends_on:
+      - db
+    restart: unless-stopped
+    profiles:
+      - debug
+    networks:
+      - knowledge-hub-network
+
+networks:
+  knowledge-hub-network:
+    driver: bridge
+
+volumes:
+  knowledge-hub-db-volume:
+    driver: local
