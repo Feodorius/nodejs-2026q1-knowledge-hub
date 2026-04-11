@@ -24,26 +24,26 @@ export class CategoryController {
 
   @ApiOperation({ summary: 'Get all categories' })
   @Get()
-  findAll(@Query() query: QueryCategoryDto) {
+  async findAll(@Query() query: QueryCategoryDto) {
     return this.categoryService.findAll(query);
   }
 
   @ApiOperation({ summary: 'Get category by id' })
   @Get(':id')
-  findOne(@Param('id', ParseUuidPipe) id: string) {
+  async findOne(@Param('id', ParseUuidPipe) id: string) {
     return this.categoryService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Create category' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() dto: CreateCategoryDto) {
+  async create(@Body() dto: CreateCategoryDto) {
     return this.categoryService.create(dto);
   }
 
   @ApiOperation({ summary: 'Update category' })
   @Put(':id')
-  update(
+  async update(
     @Param('id', ParseUuidPipe) id: string,
     @Body() dto: UpdateCategoryDto,
   ) {
@@ -53,7 +53,7 @@ export class CategoryController {
   @ApiOperation({ summary: 'Delete category' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseUuidPipe) id: string) {
+  async remove(@Param('id', ParseUuidPipe) id: string) {
     return this.categoryService.remove(id);
   }
 }
