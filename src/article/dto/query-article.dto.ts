@@ -8,7 +8,7 @@ import {
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ArticleStatus } from '../enums/article-status.enum';
+import { ArticleStatus } from '@prisma/client';
 import { SortOrder } from '../../comment/dto/query-comment.dto';
 
 export class QueryArticleDto {

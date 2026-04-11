@@ -7,7 +7,7 @@ import {
   IsUUID,
   ValidateIf,
 } from 'class-validator';
-import { ArticleStatus } from '../enums/article-status.enum';
+import { ArticleStatus } from '@prisma/client';
 
 export class UpdateArticleDto {
   @ApiPropertyOptional()
