@@ -1,84 +1,114 @@
+/* eslint-disable prettier/prettier */
 import {
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { User, UserRole } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 import { UserEntity } from './entities/user.entity';
-import { UserRole } from './enums/user-role.enum';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { QueryUserDto } from './dto/query-user.dto';
-import { ArticleService } from '../article/article.service';
-import { CommentService } from '../comment/comment.service';
 import { SortOrder } from '../comment/dto/query-comment.dto';
 
 @Injectable()
 export class UserService {
-  private users: UserEntity[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor(
-    private readonly articleService: ArticleService,
-    private readonly commentService: CommentService,
-  ) {}
-
-  findAll(query: QueryUserDto): UserEntity[] | object {
-    const result = [...this.users];
-
+  async findAll(query: QueryUserDto): Promise<UserEntity[] | object> {
+    const orderBy: any = {};
     if (query.sortBy) {
-      result.sort((a, b) => {
-        const aVal = a[query.sortBy];
-        const bVal = b[query.sortBy];
-        const dir = query.order === SortOrder.DESC ? -1 : 1;
-        return aVal > bVal ? dir : aVal < bVal ? -dir : 0;
-      });
+      orderBy[query.sortBy] = query.order === SortOrder.DESC ? 'desc' : 'asc';
     }
 
     if (query.page !== undefined && query.limit !== undefined) {
-      const total = result.length;
-      const start = (query.page - 1) * query.limit;
-      const data = result.slice(start, start + query.limit);
-      return { total, page: query.page, limit: query.limit, data };
+      const skip = (query.page - 1) * query.limit;
+      const [data, total] = await Promise.all([
+        this.prisma.user.findMany({
+          skip,
+          take: query.limit,
+          orderBy: Object.keys(orderBy).length > 0 ? orderBy : undefined,
+        }),
+        this.prisma.user.count(),
+      ]);
+      return {
+        total,
+        page: query.page,
+        limit: query.limit,
+        data: data.map((user) => this.mapToEntity(user)),
+      };
     }
 
-    return result;
-  }
-
-  findOne(id: string): UserEntity {
-    const user = this.users.find((u) => u.id === id);
-    if (!user) throw new NotFoundException(`User ${id} not found`);
-    return user;
-  }
-
-  create(dto: CreateUserDto): UserEntity {
-    const now = Date.now();
-    const user = new UserEntity({
-      id: randomUUID(),
-      login: dto.login,
-      password: dto.password,
-      role: dto.role ?? UserRole.VIEWER,
-      createdAt: now,
-      updatedAt: now,
+    const users = await this.prisma.user.findMany({
+      orderBy: Object.keys(orderBy).length > 0 ? orderBy : undefined,
     });
-    this.users.push(user);
-    return user;
+    return users.map((user) => this.mapToEntity(user));
   }
 
-  updatePassword(id: string, dto: UpdatePasswordDto): UserEntity {
-    const user = this.findOne(id);
+  async findOne(id: string): Promise<UserEntity> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+    if (!user) throw new NotFoundException(`User ${id} not found`);
+    return this.mapToEntity(user);
+  }
+
+  async create(dto: CreateUserDto): Promise<UserEntity> {
+    const user = await this.prisma.user.create({
+      data: {
+        login: dto.login,
+        password: dto.password,
+        role: dto.role ?? UserRole.VIEWER,
+      },
+    });
+    return this.mapToEntity(user);
+  }
+
+  async updatePassword(id: string, dto: UpdatePasswordDto): Promise<UserEntity> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+    if (!user) throw new NotFoundException(`User ${id} not found`);
     if (user.password !== dto.oldPassword) {
       throw new ForbiddenException('Old password is incorrect');
     }
-    user.password = dto.newPassword;
-    user.updatedAt = Date.now();
-    return user;
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { password: dto.newPassword },
+    });
+    return this.mapToEntity(updated);
   }
 
-  remove(id: string): void {
-    const index = this.users.findIndex((u) => u.id === id);
-    if (index === -1) throw new NotFoundException(`User ${id} not found`);
-    this.articleService.nullifyAuthor(id);
-    this.commentService.removeByAuthor(id);
-    this.users.splice(index, 1);
+  async remove(id: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+    if (!user) throw new NotFoundException(`User ${id} not found`);
+
+    await this.prisma.$transaction([
+      this.prisma.comment.deleteMany({
+        where: { authorId: id },
+      }),
+      this.prisma.article.updateMany({
+        where: { authorId: id },
+        data: { authorId: null },
+      }),
+      this.prisma.user.delete({
+        where: { id },
+      }),
+    ]);
+  }
+
+  private mapToEntity(user: User): UserEntity {
+    return new UserEntity({
+      id: user.id,
+      login: user.login,
+      password: user.password,
+      role: user.role,
+      createdAt: user.createdAt.getTime(),
+      updatedAt: user.updatedAt.getTime(),
+    });
   }
 }

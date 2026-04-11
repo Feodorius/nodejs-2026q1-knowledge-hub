@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { UserRole } from '../enums/user-role.enum';
+import { UserRole } from '@prisma/client';
 
 export class UserEntity {
   id: string;
