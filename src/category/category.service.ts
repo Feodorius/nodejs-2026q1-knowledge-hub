@@ -1,66 +1,96 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { Category } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 import { CategoryEntity } from './entities/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { QueryCategoryDto } from './dto/query-category.dto';
-import { ArticleService } from '../article/article.service';
 import { SortOrder } from '../comment/dto/query-comment.dto';
 
 @Injectable()
 export class CategoryService {
-  private categories: CategoryEntity[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor(private readonly articleService: ArticleService) {}
-
-  findAll(query: QueryCategoryDto): CategoryEntity[] | object {
-    const result = [...this.categories];
-
+  async findAll(query: QueryCategoryDto): Promise<CategoryEntity[] | object> {
+    const orderBy: any = {};
     if (query.sortBy) {
-      result.sort((a, b) => {
-        const aVal = a[query.sortBy];
-        const bVal = b[query.sortBy];
-        const dir = query.order === SortOrder.DESC ? -1 : 1;
-        return aVal > bVal ? dir : aVal < bVal ? -dir : 0;
-      });
+      orderBy[query.sortBy] = query.order === SortOrder.DESC ? 'desc' : 'asc';
     }
 
     if (query.page !== undefined && query.limit !== undefined) {
-      const total = result.length;
-      const start = (query.page - 1) * query.limit;
-      const data = result.slice(start, start + query.limit);
-      return { total, page: query.page, limit: query.limit, data };
+      const skip = (query.page - 1) * query.limit;
+      const [data, total] = await Promise.all([
+        this.prisma.category.findMany({
+          skip,
+          take: query.limit,
+          orderBy: Object.keys(orderBy).length > 0 ? orderBy : undefined,
+        }),
+        this.prisma.category.count(),
+      ]);
+      return {
+        total,
+        page: query.page,
+        limit: query.limit,
+        data: data.map((cat) => this.toCategoryEntity(cat)),
+      };
     }
 
-    return result;
-  }
-
-  findOne(id: string): CategoryEntity {
-    const category = this.categories.find((c) => c.id === id);
-    if (!category) throw new NotFoundException(`Category ${id} not found`);
-    return category;
-  }
-
-  create(dto: CreateCategoryDto): CategoryEntity {
-    const category = new CategoryEntity({
-      id: randomUUID(),
-      name: dto.name,
-      description: dto.description,
+    const categories = await this.prisma.category.findMany({
+      orderBy: Object.keys(orderBy).length > 0 ? orderBy : undefined,
     });
-    this.categories.push(category);
-    return category;
+    return categories.map((cat) => this.toCategoryEntity(cat));
   }
 
-  update(id: string, dto: UpdateCategoryDto): CategoryEntity {
-    const category = this.findOne(id);
-    Object.assign(category, dto);
-    return category;
+  async findOne(id: string): Promise<CategoryEntity> {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+    });
+    if (!category) throw new NotFoundException(`Category ${id} not found`);
+    return this.toCategoryEntity(category);
   }
 
-  remove(id: string): void {
-    const index = this.categories.findIndex((c) => c.id === id);
-    if (index === -1) throw new NotFoundException(`Category ${id} not found`);
-    this.articleService.nullifyCategory(id);
-    this.categories.splice(index, 1);
+  async create(dto: CreateCategoryDto): Promise<CategoryEntity> {
+    const category = await this.prisma.category.create({
+      data: {
+        name: dto.name,
+        description: dto.description,
+      },
+    });
+    return this.toCategoryEntity(category);
+  }
+
+  async update(id: string, dto: UpdateCategoryDto): Promise<CategoryEntity> {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+    });
+    if (!category) throw new NotFoundException(`Category ${id} not found`);
+
+    const updated = await this.prisma.category.update({
+      where: { id },
+      data: {
+        name: dto.name,
+        description: dto.description,
+      },
+    });
+    return this.toCategoryEntity(updated);
+  }
+
+  async remove(id: string): Promise<void> {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+    });
+    if (!category) throw new NotFoundException(`Category ${id} not found`);
+
+    await this.prisma.category.delete({
+      where: { id },
+    });
+  }
+
+  private toCategoryEntity(category: Category): CategoryEntity {
+    return new CategoryEntity({
+      id: category.id,
+      name: category.name,
+      description: category.description,
+    });
   }
 }

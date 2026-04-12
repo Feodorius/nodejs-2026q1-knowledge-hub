@@ -12,6 +12,9 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Generate Prisma Client
+RUN npx prisma generate
+
 # Compile TypeScript
 RUN npm run build
 
@@ -34,6 +37,12 @@ RUN npm ci --omit=dev
 # Copy compiled application from builder stage
 COPY --from=builder /app/dist ./dist
 
+# Copy generated Prisma Client from builder stage
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Copy prisma schema (needed for Prisma runtime)
+COPY prisma ./prisma
+
 # Change ownership to nodejs user
 RUN chown -R nodejs:nodejs /app
 
@@ -46,5 +55,5 @@ EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD node -e "require('http').get('http://localhost:4000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
-# Start application
-CMD ["node", "dist/main.js"]
+# Start application (run migrations then start server)
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]

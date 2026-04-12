@@ -1,4 +1,4 @@
-import { ArticleStatus } from '../enums/article-status.enum';
+import { ArticleStatus } from '@prisma/client';
 
 export class ArticleEntity {
   id: string;

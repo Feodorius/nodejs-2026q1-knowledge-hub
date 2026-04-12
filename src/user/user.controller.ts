@@ -24,26 +24,26 @@ export class UserController {
 
   @ApiOperation({ summary: 'Get all users' })
   @Get()
-  findAll(@Query() query: QueryUserDto) {
+  async findAll(@Query() query: QueryUserDto) {
     return this.userService.findAll(query);
   }
 
   @ApiOperation({ summary: 'Get user by id' })
   @Get(':id')
-  findOne(@Param('id', ParseUuidPipe) id: string) {
+  async findOne(@Param('id', ParseUuidPipe) id: string) {
     return this.userService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Create user' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() dto: CreateUserDto) {
+  async create(@Body() dto: CreateUserDto) {
     return this.userService.create(dto);
   }
 
   @ApiOperation({ summary: 'Update user password' })
   @Put(':id')
-  updatePassword(
+  async updatePassword(
     @Param('id', ParseUuidPipe) id: string,
     @Body() dto: UpdatePasswordDto,
   ) {
@@ -53,7 +53,7 @@ export class UserController {
   @ApiOperation({ summary: 'Delete user' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseUuidPipe) id: string) {
+  async remove(@Param('id', ParseUuidPipe) id: string) {
     return this.userService.remove(id);
   }
 }
