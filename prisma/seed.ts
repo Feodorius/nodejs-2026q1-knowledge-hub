@@ -1,6 +1,12 @@
 import { PrismaClient, UserRole, ArticleStatus } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL_LOCAL ?? process.env.DATABASE_URL,
+    },
+  },
+});
 
 async function main() {
   // Clear existing data
