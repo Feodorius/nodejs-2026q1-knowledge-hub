@@ -72,34 +72,13 @@ CREATE TABLE "_ArticleToTag" (
 CREATE UNIQUE INDEX "User_login_key" ON "User"("login");
 
 -- CreateIndex
-CREATE INDEX "User_role_idx" ON "User"("role");
-
--- CreateIndex
-CREATE INDEX "User_createdAt_idx" ON "User"("createdAt");
-
--- CreateIndex
 CREATE INDEX "Article_status_idx" ON "Article"("status");
 
 -- CreateIndex
 CREATE INDEX "Article_categoryId_idx" ON "Article"("categoryId");
 
 -- CreateIndex
-CREATE INDEX "Article_authorId_idx" ON "Article"("authorId");
-
--- CreateIndex
-CREATE INDEX "Article_createdAt_idx" ON "Article"("createdAt");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Category_name_key" ON "Category"("name");
-
--- CreateIndex
-CREATE INDEX "Comment_articleId_idx" ON "Comment"("articleId");
-
--- CreateIndex
-CREATE INDEX "Comment_authorId_idx" ON "Comment"("authorId");
-
--- CreateIndex
-CREATE INDEX "Comment_createdAt_idx" ON "Comment"("createdAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Tag_name_key" ON "Tag"("name");
