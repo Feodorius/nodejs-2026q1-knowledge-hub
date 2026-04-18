@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import {
   ForbiddenException,
   Injectable,
@@ -8,6 +7,7 @@ import { User, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { JwtRequester } from '../auth/jwt-requester.interface';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import { SortOrder } from '../comment/dto/query-comment.dto';
@@ -65,11 +65,23 @@ export class UserService {
     return this.mapToEntity(user);
   }
 
-  async updatePassword(id: string, dto: UpdatePasswordDto): Promise<UserEntity> {
+  async updatePassword(
+    id: string,
+    dto: UpdatePasswordDto,
+    requester?: JwtRequester,
+  ): Promise<UserEntity> {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
     if (!user) throw new NotFoundException(`User ${id} not found`);
+
+    if (requester) {
+      const isAdmin = requester.role?.toUpperCase() === UserRole.ADMIN;
+      const isSelf = requester.userId === id;
+      if (!isAdmin && !isSelf) {
+        throw new ForbiddenException('You can only update your own password');
+      }
+    }
     if (user.password !== dto.oldPassword) {
       throw new ForbiddenException('Old password is incorrect');
     }

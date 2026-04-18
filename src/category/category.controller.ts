@@ -16,6 +16,8 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { QueryCategoryDto } from './dto/query-category.dto';
 import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('Categories')
 @Controller('category')
@@ -35,6 +37,7 @@ export class CategoryController {
   }
 
   @ApiOperation({ summary: 'Create category' })
+  @Roles(UserRole.ADMIN)
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CreateCategoryDto) {
@@ -42,6 +45,7 @@ export class CategoryController {
   }
 
   @ApiOperation({ summary: 'Update category' })
+  @Roles(UserRole.ADMIN)
   @Put(':id')
   async update(
     @Param('id', ParseUuidPipe) id: string,
@@ -51,6 +55,7 @@ export class CategoryController {
   }
 
   @ApiOperation({ summary: 'Delete category' })
+  @Roles(UserRole.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id', ParseUuidPipe) id: string) {
