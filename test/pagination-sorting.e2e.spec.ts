@@ -1,13 +1,21 @@
 import { StatusCodes } from 'http-status-codes';
 import { request } from './lib';
 import { articlesRoutes } from './endpoints';
+import { getTokenAndUserId, removeTokenUser, shouldAuthorizationBeTested } from './utils';
 
 describe('Pagination and Sorting (e2e)', () => {
   const req = request;
   const commonHeaders = { Accept: 'application/json' };
   const createdIds: string[] = [];
+  let mockUserId: string | undefined;
 
   beforeAll(async () => {
+    if (shouldAuthorizationBeTested) {
+      const result = await getTokenAndUserId(req);
+      commonHeaders['Authorization'] = result.token;
+      mockUserId = result.mockUserId;
+    }
+
     const articles = [
       { title: 'Alpha', content: 'Content A', status: 'draft' },
       { title: 'Beta', content: 'Content B', status: 'published' },
@@ -30,6 +38,14 @@ describe('Pagination and Sorting (e2e)', () => {
   afterAll(async () => {
     for (const id of createdIds) {
       await req.delete(articlesRoutes.delete(id)).set(commonHeaders);
+    }
+
+    if (mockUserId) {
+      await removeTokenUser(req, mockUserId, commonHeaders);
+    }
+
+    if (commonHeaders['Authorization']) {
+      delete commonHeaders['Authorization'];
     }
   });
 

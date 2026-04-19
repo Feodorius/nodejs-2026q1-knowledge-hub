@@ -7,12 +7,13 @@ import {
   IsUUID,
   Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { ArticleStatus } from '@prisma/client';
 import { SortOrder } from '../../comment/dto/query-comment.dto';
 
 export class QueryArticleDto {
   @ApiPropertyOptional({ enum: ArticleStatus })
+  @Transform(({ value }) => value?.toUpperCase())
   @IsEnum(ArticleStatus)
   @IsOptional()
   status?: ArticleStatus;

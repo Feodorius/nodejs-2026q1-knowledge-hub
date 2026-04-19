@@ -1,9 +1,10 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { User, UserRole } from '@prisma/client';
+import { User, UserRole, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -55,14 +56,24 @@ export class UserService {
   }
 
   async create(dto: CreateUserDto): Promise<UserEntity> {
-    const user = await this.prisma.user.create({
-      data: {
-        login: dto.login,
-        password: dto.password,
-        role: dto.role ?? UserRole.VIEWER,
-      },
-    });
-    return this.mapToEntity(user);
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          login: dto.login,
+          password: dto.password,
+          role: dto.role ?? UserRole.VIEWER,
+        },
+      });
+      return this.mapToEntity(user);
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        throw new BadRequestException(`Login "${dto.login}" is already taken`);
+      }
+      throw e;
+    }
   }
 
   async updatePassword(
