@@ -11,18 +11,19 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  login     String   @unique
-  password  String
-  role      UserRole @default(VIEWER)
-  articles  Article[]
-  comments  Comment[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id @default(uuid())
+  login         String         @unique
+  password      String
+  role          UserRole       @default(VIEWER)
+  articles      Article[]
+  comments      Comment[]
+  refreshTokens RefreshToken[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Article {
-  id         String        @id @default(cuid())
+  id         String        @id @default(uuid())
   title      String
   content    String
   status     ArticleStatus @default(DRAFT)
@@ -40,16 +41,16 @@ model Article {
 }
 
 model Category {
-  id        String    @id @default(cuid())
-  name      String    @unique
+  id          String    @id @default(uuid())
+  name        String    @unique
   description String?
-  articles  Article[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  articles    Article[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   content   String
   articleId String
   article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
@@ -58,9 +59,20 @@ model Comment {
   createdAt DateTime @default(now())
 }
 
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
 model Tag {
-  id       String   @id @default(cuid())
-  name     String   @unique
+  id       String    @id @default(uuid())
+  name     String    @unique
   articles Article[]
 
   @@index([name])

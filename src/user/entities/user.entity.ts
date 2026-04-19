@@ -1,4 +1,4 @@
-import { Exclude } from 'class-transformer';
+import { Exclude, Transform } from 'class-transformer';
 import { UserRole } from '@prisma/client';
 
 export class UserEntity {
@@ -8,7 +8,9 @@ export class UserEntity {
   @Exclude()
   password: string;
 
+  @Transform(({ value }) => value?.toLowerCase())
   role: UserRole;
+
   createdAt: number;
   updatedAt: number;
 

@@ -1,13 +1,15 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { Comment } from '@prisma/client';
+import { Comment, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CommentEntity } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { QueryCommentDto, SortOrder } from './dto/query-comment.dto';
+import { JwtRequester } from '../auth/jwt-requester.interface';
 
 @Injectable()
 export class CommentService {
@@ -64,7 +66,17 @@ export class CommentService {
     return this.mapToEntity(comment);
   }
 
-  async create(dto: CreateCommentDto): Promise<CommentEntity> {
+  async create(
+    dto: CreateCommentDto,
+    requester?: JwtRequester,
+  ): Promise<CommentEntity> {
+    if (requester && requester.role?.toUpperCase() === UserRole.EDITOR) {
+      if (dto.authorId && dto.authorId !== requester.userId) {
+        throw new ForbiddenException(
+          'Editors can only create comments for themselves',
+        );
+      }
+    }
     const article = await this.prisma.article.findUnique({
       where: { id: dto.articleId },
     });
@@ -84,11 +96,19 @@ export class CommentService {
     return this.mapToEntity(comment);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, requester?: JwtRequester): Promise<void> {
     const comment = await this.prisma.comment.findUnique({
       where: { id },
     });
     if (!comment) throw new NotFoundException(`Comment ${id} not found`);
+
+    if (requester && requester.role?.toUpperCase() === UserRole.EDITOR) {
+      if (comment.authorId !== requester.userId) {
+        throw new ForbiddenException(
+          'Editors can only delete their own comments',
+        );
+      }
+    }
 
     await this.prisma.comment.delete({
       where: { id },

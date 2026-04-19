@@ -1,11 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Article, ArticleStatus, Tag, Prisma } from '@prisma/client';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Article, ArticleStatus, Tag, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ArticleEntity } from './entities/article.entity';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { QueryArticleDto } from './dto/query-article.dto';
 import { SortOrder } from '../comment/dto/query-comment.dto';
+import { JwtRequester } from '../auth/jwt-requester.interface';
 
 type ArticleWithTags = Article & { tags: Tag[] };
 
@@ -61,7 +66,17 @@ export class ArticleService {
     return this.mapToEntity(article);
   }
 
-  async create(dto: CreateArticleDto): Promise<ArticleEntity> {
+  async create(
+    dto: CreateArticleDto,
+    requester?: JwtRequester,
+  ): Promise<ArticleEntity> {
+    if (requester && requester.role?.toUpperCase() === UserRole.EDITOR) {
+      if (dto.authorId && dto.authorId !== requester.userId) {
+        throw new ForbiddenException(
+          'Editors can only create articles for themselves',
+        );
+      }
+    }
     const article = await this.prisma.article.create({
       data: {
         title: dto.title,
@@ -83,9 +98,21 @@ export class ArticleService {
     return this.mapToEntity(article);
   }
 
-  async update(id: string, dto: UpdateArticleDto): Promise<ArticleEntity> {
+  async update(
+    id: string,
+    dto: UpdateArticleDto,
+    requester?: JwtRequester,
+  ): Promise<ArticleEntity> {
     const existing = await this.prisma.article.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException(`Article ${id} not found`);
+
+    if (requester && requester.role?.toUpperCase() === UserRole.EDITOR) {
+      if (existing.authorId !== requester.userId) {
+        throw new ForbiddenException(
+          'Editors can only update their own articles',
+        );
+      }
+    }
 
     const article = await this.prisma.article.update({
       where: { id },

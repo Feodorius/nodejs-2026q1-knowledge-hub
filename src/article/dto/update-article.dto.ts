@@ -7,6 +7,7 @@ import {
   IsUUID,
   ValidateIf,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ArticleStatus } from '@prisma/client';
 
 export class UpdateArticleDto {
@@ -21,6 +22,7 @@ export class UpdateArticleDto {
   content?: string;
 
   @ApiPropertyOptional({ enum: ArticleStatus })
+  @Transform(({ value }) => value?.toUpperCase())
   @IsEnum(ArticleStatus)
   @IsOptional()
   status?: ArticleStatus;

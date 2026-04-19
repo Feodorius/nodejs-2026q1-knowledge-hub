@@ -9,13 +9,16 @@ import {
   Post,
   Put,
   Query,
+  Request,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { UserRole } from '@prisma/client';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('Users')
 @Controller('user')
@@ -35,6 +38,7 @@ export class UserController {
   }
 
   @ApiOperation({ summary: 'Create user' })
+  @Roles(UserRole.ADMIN)
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CreateUserDto) {
@@ -46,11 +50,13 @@ export class UserController {
   async updatePassword(
     @Param('id', ParseUuidPipe) id: string,
     @Body() dto: UpdatePasswordDto,
+    @Request() req: any,
   ) {
-    return this.userService.updatePassword(id, dto);
+    return this.userService.updatePassword(id, dto, req.user);
   }
 
   @ApiOperation({ summary: 'Delete user' })
+  @Roles(UserRole.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id', ParseUuidPipe) id: string) {
