@@ -7,6 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import { SignupDto } from './dto/signup.dto';
@@ -15,6 +16,7 @@ import { RefreshDto } from './dto/refresh.dto';
 
 @ApiTags('Auth')
 @Public()
+@Throttle({ default: { limit: 50, ttl: 60000 } })
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
