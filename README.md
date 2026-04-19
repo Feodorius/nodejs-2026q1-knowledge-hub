@@ -18,12 +18,34 @@ git clone https://github.com/Feodorius/nodejs-2026q1-knowledge-hub
 npm install
 ```
 
+## Environment setup
+
+Copy `.env.example` to `.env`:
+
+```
+cp .env.example .env
+```
+
 ## Running application
 
 ### Local development
 
+Start the database:
+
 ```
-npm start
+docker-compose up -d db
+```
+
+Apply database migrations:
+
+```
+npx prisma migrate deploy --schema=prisma/schema.prisma
+```
+
+Start the application:
+
+```
+npm run start:dev
 ```
 
 ### Docker
@@ -44,42 +66,46 @@ For more information about OpenAPI/Swagger please visit https://swagger.io/.
 
 ## Testing
 
-After application running open new terminal and enter:
+> **Important:** Before running tests, make sure the app is running:
+> ```
+> docker-compose up -d db
+> npx prisma migrate deploy --schema=prisma/schema.prisma
+> npm run start:dev
+> ```
+> Then open a new terminal and run the test commands below.
 
-To run all tests without authorization
+### Authentication & Authorization tests
 
-```
-npm run test
-```
-
-To run only one of all test suites
-
-```
-npm run test -- <path to suite>
-```
-
-To run all test with authorization
+Run all auth-related tests (requires the app to be running):
 
 ```
 npm run test:auth
 ```
 
-To run only specific test suite with authorization
-
-```
-npm run test:auth -- <path to suite>
-```
-
-To run refresh token tests
+Run refresh token tests:
 
 ```
 npm run test:refresh
 ```
 
-To run RBAC (role-based access control) tests
+Run RBAC (role-based access control) tests:
 
 ```
 npm run test:rbac
+```
+
+### Other test commands
+
+To run all tests without authorization:
+
+```
+npm run test
+```
+
+To run only one specific test suite with authorization:
+
+```
+npm run test:auth -- <path to suite>
 ```
 
 ### Auto-fix and format
