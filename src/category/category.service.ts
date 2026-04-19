@@ -64,6 +64,10 @@ export class CategoryService {
         e instanceof Prisma.PrismaClientKnownRequestError &&
         e.code === 'P2002'
       ) {
+        const existing = await this.prisma.category.findFirst({
+          where: { name: dto.name },
+        });
+        if (existing) return this.toCategoryEntity(existing);
         throw new BadRequestException(
           `Category with name "${dto.name}" already exists`,
         );
