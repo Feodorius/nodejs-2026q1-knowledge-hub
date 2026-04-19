@@ -22,6 +22,10 @@ export class AuthService {
       where: { login: dto.login },
     });
     if (existing) {
+      const match = await bcrypt.compare(dto.password, existing.password);
+      if (match) {
+        return { id: existing.id, login: existing.login, role: existing.role };
+      }
       throw new BadRequestException('Login is already taken');
     }
 
