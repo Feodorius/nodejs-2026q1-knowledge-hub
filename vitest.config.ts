@@ -28,7 +28,8 @@ export default defineConfig({
         lines: 90,
         branches: 85,
       },
-      reporter: ['text', 'lcov'],
+      reporter: ['text-summary', 'lcov', 'html'],
+      reportsDirectory: 'coverage',
     },
   },
 });
