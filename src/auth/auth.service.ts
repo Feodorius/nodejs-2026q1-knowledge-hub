@@ -1,14 +1,11 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { UserRole } from '@prisma/client';
+import { ValidationError, ForbiddenError } from '../common/errors';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +23,7 @@ export class AuthService {
       if (match) {
         return { id: existing.id, login: existing.login, role: existing.role };
       }
-      throw new BadRequestException('Login is already taken');
+      throw new ValidationError('Login is already taken');
     }
 
     const password = await bcrypt.hash(
@@ -46,12 +43,12 @@ export class AuthService {
       where: { login: dto.login },
     });
     if (!user) {
-      throw new ForbiddenException('Invalid credentials');
+      throw new ForbiddenError('Invalid credentials');
     }
 
     const passwordMatch = await bcrypt.compare(dto.password, user.password);
     if (!passwordMatch) {
-      throw new ForbiddenException('Invalid credentials');
+      throw new ForbiddenError('Invalid credentials');
     }
 
     return this.issueTokens(user);
@@ -64,21 +61,21 @@ export class AuthService {
         secret: process.env.JWT_SECRET_REFRESH_KEY,
       });
     } catch {
-      throw new ForbiddenException('Refresh token is invalid or expired');
+      throw new ForbiddenError('Refresh token is invalid or expired');
     }
 
     const stored = await this.prisma.refreshToken.findUnique({
       where: { token },
     });
     if (!stored || stored.expiresAt < new Date()) {
-      throw new ForbiddenException('Refresh token is invalid or expired');
+      throw new ForbiddenError('Refresh token is invalid or expired');
     }
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.userId },
     });
     if (!user) {
-      throw new ForbiddenException('User not found');
+      throw new ForbiddenError('User not found');
     }
 
     await this.prisma.refreshToken.delete({ where: { token } });

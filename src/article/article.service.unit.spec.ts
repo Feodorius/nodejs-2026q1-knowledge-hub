@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Test } from '@nestjs/testing';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ArticleStatus } from '@prisma/client';
 import { instanceToPlain } from 'class-transformer';
 import { SortOrder } from '../comment/dto/query-comment.dto';
 import { ArticleService } from './article.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotFoundError, ForbiddenError } from '../common/errors';
 
 const mockArticle = (overrides = {}) => ({
   id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
@@ -127,10 +127,10 @@ describe('ArticleService', () => {
       expect(result.id).toBe(article.id);
     });
 
-    it('throws NotFoundException when article not found', async () => {
+    it('throws NotFoundError when article not found', async () => {
       prisma.article.findUnique.mockResolvedValue(null);
       await expect(service.findOne('missing-id')).rejects.toThrow(
-        NotFoundException,
+        NotFoundError,
       );
     });
   });
@@ -200,7 +200,7 @@ describe('ArticleService', () => {
       );
     });
 
-    it('throws ForbiddenException when EDITOR tries to create for another author', async () => {
+    it('throws ForbiddenError when EDITOR tries to create for another author', async () => {
       await expect(
         service.create(
           {
@@ -214,7 +214,7 @@ describe('ArticleService', () => {
             role: 'editor',
           },
         ),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ForbiddenError);
     });
 
     it('allows EDITOR to create article for themselves', async () => {
@@ -248,14 +248,14 @@ describe('ArticleService', () => {
       expect(result.title).toBe('Updated');
     });
 
-    it('throws NotFoundException when article not found', async () => {
+    it('throws NotFoundError when article not found', async () => {
       prisma.article.findUnique.mockResolvedValue(null);
       await expect(service.update('missing', { title: 'X' })).rejects.toThrow(
-        NotFoundException,
+        NotFoundError,
       );
     });
 
-    it('throws ForbiddenException when EDITOR updates another author article', async () => {
+    it('throws ForbiddenError when EDITOR updates another author article', async () => {
       const article = mockArticle({ authorId: 'owner-id' });
       prisma.article.findUnique.mockResolvedValue(article);
       await expect(
@@ -264,7 +264,7 @@ describe('ArticleService', () => {
           { title: 'X' },
           { userId: 'editor-id', login: 'editor', role: 'editor' },
         ),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ForbiddenError);
     });
 
     it('allows EDITOR to update their own article', async () => {
@@ -315,11 +315,9 @@ describe('ArticleService', () => {
       });
     });
 
-    it('throws NotFoundException when article not found', async () => {
+    it('throws NotFoundError when article not found', async () => {
       prisma.article.findUnique.mockResolvedValue(null);
-      await expect(service.remove('missing-id')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.remove('missing-id')).rejects.toThrow(NotFoundError);
     });
   });
 

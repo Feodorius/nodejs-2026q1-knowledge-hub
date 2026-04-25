@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Article, ArticleStatus, Tag, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ArticleEntity } from './entities/article.entity';
@@ -11,6 +7,7 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { QueryArticleDto } from './dto/query-article.dto';
 import { SortOrder } from '../comment/dto/query-comment.dto';
 import { JwtRequester } from '../auth/jwt-requester.interface';
+import { NotFoundError, ForbiddenError } from '../common/errors';
 
 type ArticleWithTags = Article & { tags: Tag[] };
 
@@ -62,7 +59,7 @@ export class ArticleService {
       where: { id },
       include: { tags: true },
     });
-    if (!article) throw new NotFoundException(`Article ${id} not found`);
+    if (!article) throw new NotFoundError(`Article ${id} not found`);
     return this.mapToEntity(article);
   }
 
@@ -72,7 +69,7 @@ export class ArticleService {
   ): Promise<ArticleEntity> {
     if (requester && requester.role?.toUpperCase() === UserRole.EDITOR) {
       if (dto.authorId && dto.authorId !== requester.userId) {
-        throw new ForbiddenException(
+        throw new ForbiddenError(
           'Editors can only create articles for themselves',
         );
       }
@@ -104,13 +101,11 @@ export class ArticleService {
     requester?: JwtRequester,
   ): Promise<ArticleEntity> {
     const existing = await this.prisma.article.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`Article ${id} not found`);
+    if (!existing) throw new NotFoundError(`Article ${id} not found`);
 
     if (requester && requester.role?.toUpperCase() === UserRole.EDITOR) {
       if (existing.authorId !== requester.userId) {
-        throw new ForbiddenException(
-          'Editors can only update their own articles',
-        );
+        throw new ForbiddenError('Editors can only update their own articles');
       }
     }
 
@@ -139,7 +134,7 @@ export class ArticleService {
 
   async remove(id: string): Promise<void> {
     const article = await this.prisma.article.findUnique({ where: { id } });
-    if (!article) throw new NotFoundException(`Article ${id} not found`);
+    if (!article) throw new NotFoundError(`Article ${id} not found`);
     await this.prisma.article.delete({ where: { id } });
   }
 

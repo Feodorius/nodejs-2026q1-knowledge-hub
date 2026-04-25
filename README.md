@@ -66,6 +66,8 @@ For more information about OpenAPI/Swagger please visit https://swagger.io/.
 
 ## Testing
 
+> **Logging & Error Handling tests:** see [LOGGING_TESTING.md](LOGGING_TESTING.md)
+
 > **Important:** Before running tests, make sure the app is running:
 > ```
 > docker-compose up -d db
