@@ -1,15 +1,12 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-  ExecutionContext,
-  ForbiddenException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { UserRole } from '@prisma/client';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { UnauthorizedError, ForbiddenError } from '../common/errors';
 
 const makeContext = (
   overrides: {
@@ -63,32 +60,32 @@ describe('JwtAuthGuard', () => {
     expect(request.user).toEqual(payload);
   });
 
-  it('throws UnauthorizedException when Authorization header is missing', () => {
+  it('throws UnauthorizedError when Authorization header is missing', () => {
     const ctx = makeContext({ headers: {} });
-    expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
+    expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedError);
   });
 
-  it('throws UnauthorizedException when Authorization header does not start with Bearer', () => {
+  it('throws UnauthorizedError when Authorization header does not start with Bearer', () => {
     const ctx = makeContext({ headers: { authorization: 'Basic abc123' } });
-    expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
+    expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedError);
   });
 
-  it('throws UnauthorizedException when token is malformed', () => {
+  it('throws UnauthorizedError when token is malformed', () => {
     jwtService.verify.mockImplementation(() => {
       throw new Error('invalid token');
     });
     const ctx = makeContext({ headers: { authorization: 'Bearer bad.token' } });
-    expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
+    expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedError);
   });
 
-  it('throws UnauthorizedException when token is expired', () => {
+  it('throws UnauthorizedError when token is expired', () => {
     jwtService.verify.mockImplementation(() => {
       throw new Error('jwt expired');
     });
     const ctx = makeContext({
       headers: { authorization: 'Bearer expired-token' },
     });
-    expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
+    expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedError);
   });
 });
 
@@ -128,16 +125,16 @@ describe('RolesGuard', () => {
     expect(guard.canActivate(ctx)).toBe(true);
   });
 
-  it('throws ForbiddenException when user role is insufficient', () => {
+  it('throws ForbiddenError when user role is insufficient', () => {
     reflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
     const ctx = makeContext({ user: { role: 'viewer' } });
-    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
+    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenError);
   });
 
-  it('throws ForbiddenException when EDITOR tries ADMIN-only route', () => {
+  it('throws ForbiddenError when EDITOR tries ADMIN-only route', () => {
     reflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
     const ctx = makeContext({ user: { role: 'editor' } });
-    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
+    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenError);
   });
 
   it('returns false when user is not present on request', () => {
@@ -153,22 +150,22 @@ describe('RolesGuard', () => {
         UserRole.ADMIN,
       ]);
       const ctx = makeContext({ user: { role: 'viewer' } });
-      expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
+      expect(() => guard.canActivate(ctx)).toThrow(ForbiddenError);
     });
 
     it('VIEWER is forbidden from EDITOR-only route', () => {
       reflector.getAllAndOverride.mockReturnValue([UserRole.EDITOR]);
       const ctx = makeContext({ user: { role: 'viewer' } });
-      expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
+      expect(() => guard.canActivate(ctx)).toThrow(ForbiddenError);
     });
 
-    it('ForbiddenException thrown for insufficient role has status 403', () => {
+    it('ForbiddenError thrown for insufficient role has statusCode 403', () => {
       reflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
       const ctx = makeContext({ user: { role: 'viewer' } });
       try {
         guard.canActivate(ctx);
       } catch (e) {
-        expect((e as ForbiddenException).getStatus()).toBe(403);
+        expect((e as ForbiddenError).statusCode).toBe(403);
       }
     });
   });

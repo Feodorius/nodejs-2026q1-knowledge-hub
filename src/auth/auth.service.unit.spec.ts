@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Test } from '@nestjs/testing';
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserRole } from '@prisma/client';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { ValidationError, ForbiddenError } from '../common/errors';
 
 vi.mock('bcrypt', () => ({
   hash: vi.fn(),
@@ -107,13 +107,13 @@ describe('AuthService', () => {
       expect(prisma.user.create).not.toHaveBeenCalled();
     });
 
-    it('throws BadRequestException when login taken with different password', async () => {
+    it('throws ValidationError when login taken with different password', async () => {
       prisma.user.findUnique.mockResolvedValue(mockUser());
       vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
 
       await expect(
         service.signup({ login: 'testuser', password: 'wrong' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
     });
 
     it('uses CRYPT_SALT env variable for hashing', async () => {
@@ -141,19 +141,19 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('refreshToken');
     });
 
-    it('throws ForbiddenException when user not found', async () => {
+    it('throws ForbiddenError when user not found', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
       await expect(
         service.login({ login: 'none', password: 'pass' }),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ForbiddenError);
     });
 
-    it('throws ForbiddenException when password is wrong', async () => {
+    it('throws ForbiddenError when password is wrong', async () => {
       prisma.user.findUnique.mockResolvedValue(mockUser());
       vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
       await expect(
         service.login({ login: 'testuser', password: 'wrong' }),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ForbiddenError);
     });
 
     it('generates JWT with correct payload structure', async () => {
@@ -202,24 +202,24 @@ describe('AuthService', () => {
       });
     });
 
-    it('throws ForbiddenException when token is invalid (verify throws)', async () => {
+    it('throws ForbiddenError when token is invalid (verify throws)', async () => {
       jwtService.verify.mockImplementation(() => {
         throw new Error('invalid signature');
       });
       await expect(service.refresh('bad-token')).rejects.toThrow(
-        ForbiddenException,
+        ForbiddenError,
       );
     });
 
-    it('throws ForbiddenException when token not found in DB', async () => {
+    it('throws ForbiddenError when token not found in DB', async () => {
       jwtService.verify.mockReturnValue({ userId: 'uid' });
       prisma.refreshToken.findUnique.mockResolvedValue(null);
       await expect(service.refresh('missing-token')).rejects.toThrow(
-        ForbiddenException,
+        ForbiddenError,
       );
     });
 
-    it('throws ForbiddenException when token is expired in DB', async () => {
+    it('throws ForbiddenError when token is expired in DB', async () => {
       jwtService.verify.mockReturnValue({ userId: 'uid' });
       prisma.refreshToken.findUnique.mockResolvedValue({
         token: 'tok',
@@ -227,11 +227,11 @@ describe('AuthService', () => {
         expiresAt: new Date(Date.now() - 1000),
       });
       await expect(service.refresh('expired-token')).rejects.toThrow(
-        ForbiddenException,
+        ForbiddenError,
       );
     });
 
-    it('throws ForbiddenException when user not found after token validated', async () => {
+    it('throws ForbiddenError when user not found after token validated', async () => {
       jwtService.verify.mockReturnValue({ userId: 'uid' });
       prisma.refreshToken.findUnique.mockResolvedValue({
         token: 'tok',
@@ -240,7 +240,7 @@ describe('AuthService', () => {
       });
       prisma.user.findUnique.mockResolvedValue(null);
       await expect(service.refresh('orphan-token')).rejects.toThrow(
-        ForbiddenException,
+        ForbiddenError,
       );
     });
 

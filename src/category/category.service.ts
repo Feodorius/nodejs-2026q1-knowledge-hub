@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Category, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CategoryEntity } from './entities/category.entity';
@@ -10,6 +6,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { QueryCategoryDto } from './dto/query-category.dto';
 import { SortOrder } from '../comment/dto/query-comment.dto';
+import { NotFoundError, ValidationError } from '../common/errors';
 
 @Injectable()
 export class CategoryService {
@@ -49,7 +46,7 @@ export class CategoryService {
     const category = await this.prisma.category.findUnique({
       where: { id },
     });
-    if (!category) throw new NotFoundException(`Category ${id} not found`);
+    if (!category) throw new NotFoundError(`Category ${id} not found`);
     return this.toCategoryEntity(category);
   }
 
@@ -68,7 +65,7 @@ export class CategoryService {
           where: { name: dto.name },
         });
         if (existing) return this.toCategoryEntity(existing);
-        throw new BadRequestException(
+        throw new ValidationError(
           `Category with name "${dto.name}" already exists`,
         );
       }
@@ -80,7 +77,7 @@ export class CategoryService {
     const category = await this.prisma.category.findUnique({
       where: { id },
     });
-    if (!category) throw new NotFoundException(`Category ${id} not found`);
+    if (!category) throw new NotFoundError(`Category ${id} not found`);
 
     const updated = await this.prisma.category.update({
       where: { id },
@@ -96,7 +93,7 @@ export class CategoryService {
     const category = await this.prisma.category.findUnique({
       where: { id },
     });
-    if (!category) throw new NotFoundException(`Category ${id} not found`);
+    if (!category) throw new NotFoundError(`Category ${id} not found`);
 
     await this.prisma.category.delete({
       where: { id },

@@ -1,15 +1,11 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { Comment, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CommentEntity } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { QueryCommentDto, SortOrder } from './dto/query-comment.dto';
 import { JwtRequester } from '../auth/jwt-requester.interface';
+import { NotFoundError, ForbiddenError } from '../common/errors';
 
 @Injectable()
 export class CommentService {
@@ -27,7 +23,7 @@ export class CommentService {
       where: { id: query.articleId },
     });
     if (!article) {
-      throw new NotFoundException(`Article ${query.articleId} not found`);
+      throw new NotFoundError(`Article ${query.articleId} not found`);
     }
 
     if (query.page !== undefined && query.limit !== undefined) {
@@ -62,7 +58,7 @@ export class CommentService {
     const comment = await this.prisma.comment.findUnique({
       where: { id },
     });
-    if (!comment) throw new NotFoundException(`Comment ${id} not found`);
+    if (!comment) throw new NotFoundError(`Comment ${id} not found`);
     return this.mapToEntity(comment);
   }
 
@@ -72,7 +68,7 @@ export class CommentService {
   ): Promise<CommentEntity> {
     if (requester && requester.role?.toUpperCase() === UserRole.EDITOR) {
       if (dto.authorId && dto.authorId !== requester.userId) {
-        throw new ForbiddenException(
+        throw new ForbiddenError(
           'Editors can only create comments for themselves',
         );
       }
@@ -100,13 +96,11 @@ export class CommentService {
     const comment = await this.prisma.comment.findUnique({
       where: { id },
     });
-    if (!comment) throw new NotFoundException(`Comment ${id} not found`);
+    if (!comment) throw new NotFoundError(`Comment ${id} not found`);
 
     if (requester && requester.role?.toUpperCase() === UserRole.EDITOR) {
       if (comment.authorId !== requester.userId) {
-        throw new ForbiddenException(
-          'Editors can only delete their own comments',
-        );
+        throw new ForbiddenError('Editors can only delete their own comments');
       }
     }
 

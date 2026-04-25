@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { User, UserRole, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserEntity } from './entities/user.entity';
@@ -12,6 +7,11 @@ import { JwtRequester } from '../auth/jwt-requester.interface';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import { SortOrder } from '../comment/dto/query-comment.dto';
+import {
+  NotFoundError,
+  ValidationError,
+  ForbiddenError,
+} from '../common/errors';
 
 @Injectable()
 export class UserService {
@@ -51,7 +51,7 @@ export class UserService {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
-    if (!user) throw new NotFoundException(`User ${id} not found`);
+    if (!user) throw new NotFoundError(`User ${id} not found`);
     return this.mapToEntity(user);
   }
 
@@ -70,7 +70,7 @@ export class UserService {
         e instanceof Prisma.PrismaClientKnownRequestError &&
         e.code === 'P2002'
       ) {
-        throw new BadRequestException(`Login "${dto.login}" is already taken`);
+        throw new ValidationError(`Login "${dto.login}" is already taken`);
       }
       throw e;
     }
@@ -84,17 +84,17 @@ export class UserService {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
-    if (!user) throw new NotFoundException(`User ${id} not found`);
+    if (!user) throw new NotFoundError(`User ${id} not found`);
 
     if (requester) {
       const isAdmin = requester.role?.toUpperCase() === UserRole.ADMIN;
       const isSelf = requester.userId === id;
       if (!isAdmin && !isSelf) {
-        throw new ForbiddenException('You can only update your own password');
+        throw new ForbiddenError('You can only update your own password');
       }
     }
     if (user.password !== dto.oldPassword) {
-      throw new ForbiddenException('Old password is incorrect');
+      throw new ForbiddenError('Old password is incorrect');
     }
 
     const updated = await this.prisma.user.update({
@@ -108,7 +108,7 @@ export class UserService {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
-    if (!user) throw new NotFoundException(`User ${id} not found`);
+    if (!user) throw new NotFoundError(`User ${id} not found`);
 
     await this.prisma.$transaction([
       this.prisma.comment.deleteMany({
