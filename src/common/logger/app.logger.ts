@@ -64,6 +64,10 @@ export class AppLogger implements LoggerService {
     this.write('verbose', message, context);
   }
 
+  fatal(message: any, trace?: string, context?: string): void {
+    this.write('error', `FATAL: ${message}`, context, trace);
+  }
+
   private write(
     level: NestLogLevel,
     message: any,

@@ -24,7 +24,7 @@ async function gracefulShutdown(): Promise<void> {
 }
 
 process.on('uncaughtException', (error: Error) => {
-  appLogger.error(
+  appLogger.fatal(
     `Uncaught Exception: ${error.message}`,
     error.stack,
     'Process',
