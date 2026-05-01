@@ -45,7 +45,8 @@ docker-compose up -d db
 Apply database migrations:
 
 ```
-npx prisma migrate deploy --schema=prisma/schema.prisma
+set -a && source .env && set +a
+DATABASE_URL=$DATABASE_URL_LOCAL npx prisma migrate deploy --schema=prisma/schema.prisma
 ```
 
 Seed the database (creates users, categories, and articles):
