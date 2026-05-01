@@ -26,6 +26,12 @@ Copy `.env.example` to `.env`:
 cp .env.example .env
 ```
 
+## AI Integration (Google Gemini)
+
+> **Full setup guide:** [AI_INTEGRATION.md](AI_INTEGRATION.md)
+
+The API includes AI-powered endpoints for article summarization, translation, and analysis powered by Google Gemini (`gemini-2.0-flash`).
+
 ## Running application
 
 ### Local development
