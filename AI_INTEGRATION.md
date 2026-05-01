@@ -106,6 +106,6 @@ curl http://localhost:4000/ai/diagnostics \
 
 - **Rate limit:** Free Gemini tier allows ~15 requests/minute and 1M tokens/day per API key. Set `AI_RATE_LIMIT_RPM=15` if you hit upstream 429 errors.
 - **Latency:** Gemini API responses typically take 1–4 seconds depending on content length.
-- **Regional availability:** Gemini API may be unavailable in some regions. Use a VPN or the Vertex AI endpoint if needed.
+- **Regional availability:** Gemini free tier is **not available in some countries** (e.g. Russia). If you see `limit: 0` in a 429 response, the API key's Google Cloud project has no free tier quota. Workarounds: use a VPN to create the API key from an available region (US/EU), or enable billing on the Google Cloud project.
 - **Context window:** `gemini-2.0-flash` supports up to 1M tokens, but very long articles may increase latency and token cost.
 - **JSON output:** The analyze endpoint instructs Gemini to return structured JSON. On rare occasions Gemini may return non-JSON text; the API will fall back to a safe default response.

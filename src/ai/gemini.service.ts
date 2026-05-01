@@ -103,6 +103,22 @@ export class GeminiService {
     }
 
     if (status === 429) {
+      let body: Record<string, unknown> = {};
+      try {
+        body = (await response.json()) as Record<string, unknown>;
+      } catch {
+        // ignore parse error
+      }
+
+      const message = (body as any)?.error?.message ?? '';
+      const isHardLimit = message.includes('limit: 0');
+
+      if (isHardLimit) {
+        throw new ServiceUnavailableError(
+          'Gemini free tier quota is not available for this API key. Check your Google Cloud project billing settings.',
+        );
+      }
+
       const err = new ServiceUnavailableError('Gemini upstream rate limit');
       (err as any).__retryable = true;
       throw err;
