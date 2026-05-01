@@ -26,25 +26,16 @@ AI_CACHE_TTL_SEC=300
 Run the following commands one by one:
 
 ```bash
-# 1. Start the database container
-docker-compose up -d db
+# 1. Build and start the app + database (migrations run automatically on startup)
+docker-compose up --build -d
 
-# 2. Load .env variables into the shell
-set -a && source .env && set +a
-
-# 3. Apply database migrations
-DATABASE_URL=$DATABASE_URL_LOCAL npx prisma migrate deploy --schema=prisma/schema.prisma
-
-# 4. Seed the database
+# 2. Seed the database (run from host — port 5432 is exposed)
 npx prisma db seed
-
-# 5. Start the application
-npm run start:dev
 ```
 
 > The seed creates 3 users (`admin` / `editor` / `viewer`), 3 categories, and 5 articles with substantial content — ready to use with AI endpoints out of the box.
 >
-> **Note:** `DATABASE_URL_LOCAL` (from `.env`) uses `localhost:5432` instead of the Docker hostname `db:5432`, which is required when running Prisma commands from the host machine.
+> **Note:** Migrations are applied automatically inside the container on startup (`npx prisma migrate deploy && node dist/main.js`). The seed runs from the host using `DATABASE_URL_LOCAL` (`localhost:5432`) defined in `.env`.
 
 ## Step 4 — Test AI endpoints
 

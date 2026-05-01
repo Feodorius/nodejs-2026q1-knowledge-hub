@@ -34,6 +34,20 @@ The API includes AI-powered endpoints for article summarization, translation, an
 
 ## Running application
 
+### Docker (recommended)
+
+Build and start everything (migrations run automatically on container startup):
+
+```
+docker-compose up --build -d
+```
+
+Seed the database (run from host — port 5432 is exposed):
+
+```
+npx prisma db seed
+```
+
 ### Local development
 
 Start the database:
@@ -49,7 +63,7 @@ set -a && source .env && set +a
 DATABASE_URL=$DATABASE_URL_LOCAL npx prisma migrate deploy --schema=prisma/schema.prisma
 ```
 
-Seed the database (creates users, categories, and articles):
+Seed the database:
 
 ```
 npx prisma db seed
@@ -59,12 +73,6 @@ Start the application:
 
 ```
 npm run start:dev
-```
-
-### Docker
-
-```
-docker-compose up --build
 ```
 
 ## Docker Hub
