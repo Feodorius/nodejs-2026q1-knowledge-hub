@@ -48,6 +48,12 @@ Apply database migrations:
 npx prisma migrate deploy --schema=prisma/schema.prisma
 ```
 
+Seed the database (creates users, categories, and articles):
+
+```
+npx prisma db seed
+```
+
 Start the application:
 
 ```

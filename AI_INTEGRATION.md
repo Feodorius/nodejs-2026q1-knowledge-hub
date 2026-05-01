@@ -21,21 +21,16 @@ AI_RATE_LIMIT_RPM=20
 AI_CACHE_TTL_SEC=300
 ```
 
-| Variable | Description | Default |
-|---|---|---|
-| `GEMINI_API_KEY` | Your Gemini API key (required) | — |
-| `GEMINI_API_BASE_URL` | Gemini API base URL | `https://generativelanguage.googleapis.com` |
-| `GEMINI_MODEL` | Gemini model to use | `gemini-2.0-flash` |
-| `AI_RATE_LIMIT_RPM` | Max AI requests per minute (server-wide) | `20` |
-| `AI_CACHE_TTL_SEC` | Cache TTL in seconds for summarize/translate | `300` |
-
 ## Step 3 — Start the application
 
 ```bash
 docker-compose up -d db
 npx prisma migrate deploy --schema=prisma/schema.prisma
+npx prisma db seed
 npm run start:dev
 ```
+
+> The seed creates 3 users (`admin` / `editor` / `viewer`), 3 categories, and 5 articles with substantial content — ready to use with AI endpoints out of the box.
 
 ## Step 4 — Test AI endpoints
 
