@@ -39,7 +39,7 @@ npx prisma db seed
 
 ## Step 4 — Test AI endpoints
 
-First, obtain a JWT token:
+**1. Login and save the token:**
 
 ```bash
 curl -X POST http://localhost:4000/auth/login \
@@ -47,9 +47,18 @@ curl -X POST http://localhost:4000/auth/login \
   -d '{"login": "admin", "password": "Admin123!"}'
 ```
 
-Use the returned `accessToken` as `Bearer <token>` in all AI requests.
+Copy the `accessToken` from the response.
 
-**Summarize an article:**
+**2. Get article IDs:**
+
+```bash
+curl http://localhost:4000/article \
+  -H "Authorization: Bearer <token>"
+```
+
+Copy any `id` from the response to use in AI requests below.
+
+**3. Summarize an article:**
 ```bash
 curl -X POST http://localhost:4000/ai/articles/<articleId>/summarize \
   -H "Authorization: Bearer <token>" \
@@ -57,7 +66,7 @@ curl -X POST http://localhost:4000/ai/articles/<articleId>/summarize \
   -d '{"maxLength": "medium"}'
 ```
 
-**Translate an article:**
+**4. Translate an article:**
 ```bash
 curl -X POST http://localhost:4000/ai/articles/<articleId>/translate \
   -H "Authorization: Bearer <token>" \
@@ -65,7 +74,7 @@ curl -X POST http://localhost:4000/ai/articles/<articleId>/translate \
   -d '{"targetLanguage": "Spanish"}'
 ```
 
-**Analyze an article:**
+**5. Analyze an article:**
 ```bash
 curl -X POST http://localhost:4000/ai/articles/<articleId>/analyze \
   -H "Authorization: Bearer <token>" \
@@ -73,7 +82,7 @@ curl -X POST http://localhost:4000/ai/articles/<articleId>/analyze \
   -d '{"task": "review"}'
 ```
 
-**Generic generation (with optional session context):**
+**6. Generic generation (with optional session context):**
 ```bash
 curl -X POST http://localhost:4000/ai/generate \
   -H "Authorization: Bearer <token>" \
@@ -81,13 +90,13 @@ curl -X POST http://localhost:4000/ai/generate \
   -d '{"prompt": "Explain the event loop in Node.js", "sessionId": "my-session-1"}'
 ```
 
-**Usage statistics:**
+**7. Usage statistics:**
 ```bash
 curl http://localhost:4000/ai/usage \
   -H "Authorization: Bearer <token>"
 ```
 
-**Diagnostics (latency + cache + usage):**
+**8. Diagnostics (latency + cache + usage):**
 ```bash
 curl http://localhost:4000/ai/diagnostics \
   -H "Authorization: Bearer <token>"
