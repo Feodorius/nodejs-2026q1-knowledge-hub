@@ -1,4 +1,5 @@
 import { PrismaClient, UserRole, ArticleStatus } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient({
   datasources: {
@@ -16,11 +17,13 @@ async function main() {
   await prisma.category.deleteMany();
   await prisma.user.deleteMany();
 
+  const password = await bcrypt.hash('Admin123!', 10);
+
   console.log('Creating users...');
   const admin = await prisma.user.create({
     data: {
       login: 'admin',
-      password: '$2b$10$YJV.Q1Ky9k8S4C5z7p1p6.Vh8xR9x9Ky8xR9x9Ky8xR9x9Ky8xR9x9',
+      password,
       role: UserRole.ADMIN,
     },
   });
@@ -28,7 +31,7 @@ async function main() {
   const editor = await prisma.user.create({
     data: {
       login: 'editor',
-      password: '$2b$10$YJV.Q1Ky9k8S4C5z7p1p6.Vh8xR9x9Ky8xR9x9Ky8xR9x9Ky8xR9x9',
+      password,
       role: UserRole.EDITOR,
     },
   });
@@ -36,7 +39,7 @@ async function main() {
   const viewer = await prisma.user.create({
     data: {
       login: 'viewer',
-      password: '$2b$10$YJV.Q1Ky9k8S4C5z7p1p6.Vh8xR9x9Ky8xR9x9Ky8xR9x9Ky8xR9x9',
+      password,
       role: UserRole.VIEWER,
     },
   });
