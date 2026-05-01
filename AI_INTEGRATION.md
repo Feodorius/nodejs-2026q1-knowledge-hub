@@ -37,7 +37,7 @@ npx prisma db seed
 >
 > **Note:** Migrations are applied automatically inside the container on startup (`npx prisma migrate deploy && node dist/main.js`). The seed runs from the host using `DATABASE_URL_LOCAL` (`localhost:5432`) defined in `.env`.
 
-## Step 4 — Test AI endpoints
+## Step 4 — Test AI endpoints -- You can use Postman or just copy the commands in the terminal
 
 **1. Login and save the token:**
 
