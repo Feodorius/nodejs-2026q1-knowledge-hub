@@ -5,6 +5,7 @@ import { UserModule } from './user/user.module';
 import { ArticleModule } from './article/article.module';
 import { CategoryModule } from './category/category.module';
 import { CommentModule } from './comment/comment.module';
+import { AiModule } from './ai/ai.module';
 import { LoggingMiddleware } from './common/middleware/logging.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -22,6 +23,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     ArticleModule,
     CategoryModule,
     CommentModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [
