@@ -23,8 +23,19 @@ services:
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public&connection_limit=10&pool_timeout=20
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_API_BASE_URL=${GEMINI_API_BASE_URL}
+      - GEMINI_MODEL=${GEMINI_MODEL}
+      - GEMINI_EMBEDDING_MODEL=${GEMINI_EMBEDDING_MODEL}
+      - RAG_VECTOR_DB_URL=http://vectordb:6333
+      - RAG_VECTOR_COLLECTION=${RAG_VECTOR_COLLECTION:-knowledge_hub_articles}
+      - RAG_CHUNK_SIZE=${RAG_CHUNK_SIZE:-800}
+      - RAG_CHUNK_OVERLAP=${RAG_CHUNK_OVERLAP:-200}
+      - RAG_CONVERSATION_MAX_MESSAGES=${RAG_CONVERSATION_MAX_MESSAGES:-20}
     depends_on:
       db:
+        condition: service_healthy
+      vectordb:
         condition: service_healthy
     restart: on-failure
     healthcheck:
@@ -60,6 +71,24 @@ services:
     networks:
       - knowledge-hub-network
 
+  vectordb:
+    image: qdrant/qdrant:latest
+    container_name: knowledge-hub-vectordb
+    restart: unless-stopped
+    ports:
+      - '6333:6333'
+      - '6334:6334'
+    volumes:
+      - knowledge-hub-vector-volume:/qdrant/storage
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:6333/healthz || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - knowledge-hub-network
+
   adminer:
     image: adminer:latest
     container_name: knowledge-hub-adminer
@@ -79,4 +108,6 @@ networks:
 
 volumes:
   knowledge-hub-db-volume:
+    driver: local
+  knowledge-hub-vector-volume:
     driver: local
