@@ -17,5 +17,6 @@ import { PrismaModule } from '../prisma/prisma.module';
     AiUsageService,
     AiRateLimitGuard,
   ],
+  exports: [GeminiService],
 })
 export class AiModule {}
