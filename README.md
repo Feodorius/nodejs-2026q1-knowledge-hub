@@ -24,7 +24,13 @@ cp .env.example .env
 
 > **Full setup guide:** [AI_INTEGRATION.md](AI_INTEGRATION.md)
 
-The API includes AI-powered endpoints for article summarization, translation, and analysis powered by Google Gemini (`gemini-2.0-flash`). Add your API key to `.env` before starting the app.
+The API includes AI-powered endpoints for article summarization, translation, and analysis powered by Google Gemini (`gemini-2.5-flash`). Add your API key to `.env` before starting the app.
+
+## RAG (Retrieval-Augmented Generation)
+
+> **Full RAG guide:** [RAG_INTEGRATION.md](RAG_INTEGRATION.md)
+
+Articles stored in the Knowledge Hub can be indexed into a **Qdrant** vector database and queried with natural language. The RAG layer supports hybrid search, Gemini re-ranking, conversation memory, and source attribution.
 
 ## Running application
 
