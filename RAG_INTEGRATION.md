@@ -71,6 +71,7 @@ npx prisma db seed
 
 **4. Build the RAG index**
 
+**Use POSTMAN or you can use curl commands below**
 Obtain a JWT token first (via `POST /auth/login`), then:
 
 ```bash
@@ -100,7 +101,7 @@ RAG chat:
 curl -X POST http://localhost:4000/ai/rag/chat \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <jwt-token>" \
-  -d '{ "question": "What authentication methods are supported?" }'
+  -d '{ "question": "Does it support TS?" }'
 ```
 
 Follow-up in the same conversation (use `conversationId` from the previous response):
@@ -108,7 +109,7 @@ Follow-up in the same conversation (use `conversationId` from the previous respo
 curl -X POST http://localhost:4000/ai/rag/chat \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <jwt-token>" \
-  -d '{ "question": "How do I refresh a token?", "conversationId": "<id-from-previous-response>" }'
+  -d '{ "question": "How do I use TS here?", "conversationId": "<id-from-previous-response>" }'
 ```
 
 ---
