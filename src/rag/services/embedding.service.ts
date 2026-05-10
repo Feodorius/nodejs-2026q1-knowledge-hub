@@ -68,6 +68,17 @@ export class EmbeddingService {
 
   private async handleHttpError(response: Response): Promise<never> {
     const status = response.status;
+    let rawBody = '';
+    try {
+      rawBody = await response.text();
+    } catch { /* ignore */ }
+
+    if (status === 404) {
+      this.logger.error(`Gemini embedding 404. model="${this.model}" body=${rawBody}`);
+      throw new ServiceUnavailableError(
+        `Gemini embedding model not found (404). model="${this.model}"`,
+      );
+    }
 
     if (status === 401 || status === 403) {
       this.logger.error(`Gemini embedding auth error: ${status}`);
@@ -77,10 +88,8 @@ export class EmbeddingService {
     if (status === 429) {
       let body: Record<string, unknown> = {};
       try {
-        body = (await response.json()) as Record<string, unknown>;
-      } catch {
-        // ignore
-      }
+        body = JSON.parse(rawBody) as Record<string, unknown>;
+      } catch { /* ignore */ }
       const message = (body as any)?.error?.message ?? '';
       if (message.includes('limit: 0')) {
         throw new ServiceUnavailableError(
