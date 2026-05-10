@@ -44,6 +44,8 @@ Persistent data is stored in the named volume `knowledge-hub-vector-volume`.
 ```bash
 git clone https://github.com/Feodorius/nodejs-2026q1-knowledge-hub
 cd nodejs-2026q1-knowledge-hub
+git checkout 10-ai-rag-vectordb
+npm i
 cp .env.example .env
 # Edit .env — set GEMINI_API_KEY=<your-key>
 ```
