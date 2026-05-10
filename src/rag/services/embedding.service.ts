@@ -14,9 +14,9 @@ export class EmbeddingService {
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY ?? '';
     this.baseUrl =
-      process.env.GEMINI_API_BASE_URL ??
+      process.env.GEMINI_API_BASE_URL ||
       'https://generativelanguage.googleapis.com';
-    this.model = process.env.GEMINI_EMBEDDING_MODEL ?? 'text-embedding-004';
+    this.model = process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004';
   }
 
   async embedQuery(text: string): Promise<number[]> {

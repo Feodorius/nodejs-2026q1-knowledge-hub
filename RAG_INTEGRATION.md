@@ -65,6 +65,7 @@ docker-compose ps
 **3. Seed the database**
 
 ```bash
+npx prisma generate
 npx prisma db seed
 ```
 
