@@ -25,7 +25,9 @@ export class EmbeddingService {
 
   async embedDocuments(texts: string[]): Promise<number[][]> {
     if (texts.length === 0) return [];
-    return this.withRetry(() => this.embedBatch(texts));
+    return this.withRetry(() =>
+      Promise.all(texts.map((text) => this.embedSingle(text, 'RETRIEVAL_DOCUMENT'))),
+    );
   }
 
   private async embedSingle(text: string, taskType: string): Promise<number[]> {
@@ -62,44 +64,6 @@ export class EmbeddingService {
       embedding: { values: number[] };
     };
     return data.embedding.values;
-  }
-
-  private async embedBatch(texts: string[]): Promise<number[][]> {
-    const url = `${this.baseUrl}/v1beta/models/${this.model}:batchEmbedContents?key=${this.apiKey}`;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-    const requests = texts.map((text) => ({
-      model: `models/${this.model}`,
-      content: { parts: [{ text }] },
-      taskType: 'RETRIEVAL_DOCUMENT',
-    }));
-
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests }),
-        signal: controller.signal,
-      });
-    } catch (err: unknown) {
-      const isAbort = err instanceof Error && err.name === 'AbortError';
-      throw new ServiceUnavailableError(
-        isAbort
-          ? 'Gemini embedding request timed out'
-          : 'Gemini API is unreachable',
-      );
-    } finally {
-      clearTimeout(timer);
-    }
-
-    if (!response.ok) await this.handleHttpError(response);
-
-    const data = (await response.json()) as {
-      embeddings: { values: number[] }[];
-    };
-    return data.embeddings.map((e) => e.values);
   }
 
   private async handleHttpError(response: Response): Promise<never> {
