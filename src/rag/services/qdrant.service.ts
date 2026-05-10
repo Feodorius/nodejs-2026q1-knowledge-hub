@@ -15,7 +15,7 @@ export interface QdrantResult {
   payload: ChunkPayload;
 }
 
-const VECTOR_SIZE = 768;
+const VECTOR_SIZE = 3072;
 
 @Injectable()
 export class QdrantService implements OnModuleInit {
