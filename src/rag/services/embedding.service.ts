@@ -31,7 +31,7 @@ export class EmbeddingService {
   }
 
   private async embedSingle(text: string, taskType: string): Promise<number[]> {
-    const url = `${this.baseUrl}/v1/models/${this.model}:embedContent?key=${this.apiKey}`;
+    const url = `${this.baseUrl}/v1beta/models/${this.model}:embedContent?key=${this.apiKey}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -41,7 +41,6 @@ export class EmbeddingService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: `models/${this.model}`,
           content: { parts: [{ text }] },
           taskType,
         }),
