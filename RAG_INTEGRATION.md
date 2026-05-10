@@ -19,7 +19,7 @@ Articles stored in the Knowledge Hub can be indexed into a **Qdrant** vector dat
 | Purpose | Model | Env var |
 |---------|-------|---------|
 | Answer generation, re-ranking | `gemini-2.5-flash` | `GEMINI_MODEL` |
-| Vector embeddings | `text-embedding-004` (768 dim) | `GEMINI_EMBEDDING_MODEL` |
+| Vector embeddings | `gemini-embedding-001` (768 dim) | `GEMINI_EMBEDDING_MODEL` |
 
 ---
 
